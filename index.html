@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Art of the Board Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/d3@7"></script>
+    <script src="https://unpkg.com/scrollama"></script>
+</head>
+
+<body>
+    <main>
+        <section id="intro">
+            <h1 class="title">The Golden Age of <br>Board Games</h1>
+            <p class="subtitle">How design trends have evolved from simple roll-and-moves to complex strategic
+                masterpieces.</p>
+            <p class="byline">By Mo & Angela</p>
+        </section>
+
+        <section id="scrolly" class="scrolly-section">
+            <article>
+                <div class="step" data-step="1">
+                    <h2>The Early Days</h2>
+                    <p>For decades, board games were defined by luck. Roll a die, move a pawn. Think <em>Monopoly</em>
+                        or <em>Sorry!</em>. But starting in the late 90s, something changed.</p>
+                </div>
+                <div class="step" data-step="2">
+                    <h2>The Eurogame Revolution</h2>
+                    <p>Designers began prioritizing strategy over luck. Mechanics like <strong>Worker Placement</strong>
+                        and <strong>Resource Management</strong> took center stage.</p>
+                </div>
+                <div class="step" data-step="3">
+                    <h2>Complexity Rising</h2>
+                    <p>As the audience grew more sophisticated, so did the games. The average "weight" (complexity) of
+                        top-rated games has steadily climbed.</p>
+                </div>
+                <div class="step" data-step="4">
+                    <h2>Modern Hybrids</h2>
+                    <p>Today, the best games blend rich themes with tight mechanics. Let's explore what makes a modern
+                        classic.</p>
+                </div>
+            </article>
+
+            <figure>
+                <div id="vis-container"></div>
+                <p id="vis-caption">Average Game Complexity over Time</p>
+            </figure>
+        </section>
+
+        <section id="scrolly-complexity" class="scrolly-section">
+            <article>
+                <div class="step" data-step="complexity-1">
+                    <h2>The Complexity Creep</h2>
+                    <p>In the 90s, popular games were simple. The average complexity (weight) was around 2.0.</p>
+                </div>
+                <div class="step" data-step="complexity-2">
+                    <h2>Heavier is Better?</h2>
+                    <p>Interestingly, there is a strong correlation between complexity and user rating. "Heavier" games
+                        tend to be rated higher by the BGG community.</p>
+                </div>
+                <div class="step" data-step="complexity-3">
+                    <h2>The Sweet Spot</h2>
+                    <p>However, the very heaviest games (weight > 4.5) see a drop-off. The "sweet spot" seems to be
+                        around 3.5 - 4.0.</p>
+                </div>
+            </article>
+
+            <figure>
+                <div id="vis-complexity"></div>
+                <p id="vis-caption-complexity">Complexity vs. Rating</p>
+            </figure>
+        </section>
+
+        <!-- NEW QUIZ SECTION -->
+        <section id="quiz-section">
+            <div id="quiz-intro" class="quiz-screen active">
+                <div class="quiz-intro-content">
+                    <span class="quiz-eyebrow">Interactive</span>
+                    <h2>Find Your Perfect Game</h2>
+                    <p>Answer a few questions and we'll show you where your ideal board game falls in the universe of
+                        17,000+ games.</p>
+                    <button id="start-quiz" class="quiz-btn-start">
+                        <span>Let's Go</span>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="floating-dice">
+                    <span class="dice dice-1">⚀</span>
+                    <span class="dice dice-2">⚁</span>
+                    <span class="dice dice-3">⚂</span>
+                    <span class="dice dice-4">⚃</span>
+                    <span class="dice dice-5">⚄</span>
+                    <span class="dice dice-6">⚅</span>
+                </div>
+            </div>
+
+            <div id="quiz-questions" class="quiz-screen">
+                <div class="quiz-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="progress-text" id="progress-text">1 / 5</span>
+                </div>
+
+                <div class="questions-container" id="questions-container">
+                    <!-- Question 1: Time -->
+                    <div class="question active" data-question="0">
+                        <h3>How much time do you have?</h3>
+                        <p class="question-sub">Pick your ideal game length</p>
+                        <div class="options time-options">
+                            <button class="option-btn" data-value="30">
+                                <span class="option-icon">⚡</span>
+                                <span class="option-label">Quick</span>
+                                <span class="option-detail">~30 min</span>
+                            </button>
+                            <button class="option-btn" data-value="60">
+                                <span class="option-icon">☕</span>
+                                <span class="option-label">Standard</span>
+                                <span class="option-detail">~1 hour</span>
+                            </button>
+                            <button class="option-btn" data-value="120">
+                                <span class="option-icon">🍕</span>
+                                <span class="option-label">Epic</span>
+                                <span class="option-detail">~2 hours</span>
+                            </button>
+                            <button class="option-btn" data-value="240">
+                                <span class="option-icon">🌙</span>
+                                <span class="option-label">Marathon</span>
+                                <span class="option-detail">3+ hours</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Question 2: Complexity -->
+                    <div class="question" data-question="1">
+                        <h3>How complex do you like it?</h3>
+                        <p class="question-sub">Rate your appetite for rules</p>
+                        <div class="options complexity-options">
+                            <button class="option-btn" data-value="1.5">
+                                <span class="option-icon">🧸</span>
+                                <span class="option-label">Simple</span>
+                                <span class="option-detail">Learn in 5 min</span>
+                            </button>
+                            <button class="option-btn" data-value="2.5">
+                                <span class="option-icon">🎯</span>
+                                <span class="option-label">Moderate</span>
+                                <span class="option-detail">Some strategy</span>
+                            </button>
+                            <button class="option-btn" data-value="3.5">
+                                <span class="option-icon">🧩</span>
+                                <span class="option-label">Complex</span>
+                                <span class="option-detail">Crunchy decisions</span>
+                            </button>
+                            <button class="option-btn" data-value="4.5">
+                                <span class="option-icon">🧠</span>
+                                <span class="option-label">Heavy</span>
+                                <span class="option-detail">Brain burner</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Question 3: Player Count -->
+                    <div class="question" data-question="2">
+                        <h3>How many players?</h3>
+                        <p class="question-sub">Your typical game night crowd</p>
+                        <div class="options player-options">
+                            <button class="option-btn" data-value="2">
+                                <span class="option-icon">👥</span>
+                                <span class="option-label">Duo</span>
+                                <span class="option-detail">2 players</span>
+                            </button>
+                            <button class="option-btn" data-value="4">
+                                <span class="option-icon">👨‍👩‍👧‍👦</span>
+                                <span class="option-label">Small Group</span>
+                                <span class="option-detail">3-4 players</span>
+                            </button>
+                            <button class="option-btn" data-value="6">
+                                <span class="option-icon">🎉</span>
+                                <span class="option-label">Party</span>
+                                <span class="option-detail">5-6 players</span>
+                            </button>
+                            <button class="option-btn" data-value="8">
+                                <span class="option-icon">🏟️</span>
+                                <span class="option-label">Big Group</span>
+                                <span class="option-detail">7+ players</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Question 4: Mechanic -->
+                    <div class="question" data-question="3">
+                        <h3>What's your style?</h3>
+                        <p class="question-sub">Pick your favorite game mechanic</p>
+                        <div class="options mechanic-options">
+                            <button class="option-btn" data-value="Dice Rolling">
+                                <span class="option-icon">🎲</span>
+                                <span class="option-label">Dice Rolling</span>
+                                <span class="option-detail">Press your luck</span>
+                            </button>
+                            <button class="option-btn" data-value="Worker Placement">
+                                <span class="option-icon">👷</span>
+                                <span class="option-label">Worker Placement</span>
+                                <span class="option-detail">Claim your spots</span>
+                            </button>
+                            <button class="option-btn" data-value="Deck, Bag, and Pool Building">
+                                <span class="option-icon">🃏</span>
+                                <span class="option-label">Deck Building</span>
+                                <span class="option-detail">Build your engine</span>
+                            </button>
+                            <button class="option-btn" data-value="Cooperative Game">
+                                <span class="option-icon">🤝</span>
+                                <span class="option-label">Co-op</span>
+                                <span class="option-detail">Win together</span>
+                            </button>
+                            <button class="option-btn" data-value="Area Majority / Influence">
+                                <span class="option-icon">🗺️</span>
+                                <span class="option-label">Area Control</span>
+                                <span class="option-detail">Dominate the map</span>
+                            </button>
+                            <button class="option-btn" data-value="Hand Management">
+                                <span class="option-icon">✋</span>
+                                <span class="option-label">Hand Management</span>
+                                <span class="option-detail">Play your cards right</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Question 5: Era -->
+                    <div class="question" data-question="4">
+                        <h3>Classic or Modern?</h3>
+                        <p class="question-sub">When was your ideal game designed?</p>
+                        <div class="options era-options">
+                            <button class="option-btn" data-value="1990">
+                                <span class="option-icon">📼</span>
+                                <span class="option-label">Vintage</span>
+                                <span class="option-detail">Before 2000</span>
+                            </button>
+                            <button class="option-btn" data-value="2005">
+                                <span class="option-icon">💿</span>
+                                <span class="option-label">Classic Era</span>
+                                <span class="option-detail">2000-2010</span>
+                            </button>
+                            <button class="option-btn" data-value="2015">
+                                <span class="option-icon">📱</span>
+                                <span class="option-label">Modern</span>
+                                <span class="option-detail">2011-2019</span>
+                            </button>
+                            <button class="option-btn" data-value="2022">
+                                <span class="option-icon">✨</span>
+                                <span class="option-label">Cutting Edge</span>
+                                <span class="option-detail">2020+</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="quiz-results" class="quiz-screen">
+                <div class="results-header">
+                    <span class="results-eyebrow">Your Results</span>
+                    <h2>Here's Where You Land</h2>
+                </div>
+                <div class="results-viz-container">
+                    <div id="results-viz"></div>
+                </div>
+                <div class="results-stats" id="results-stats">
+                    <!-- Filled by JS -->
+                </div>
+                <div class="results-matches">
+                    <h3>Your Perfect Matches</h3>
+                    <ul id="results-matches-list"></ul>
+                </div>
+                <button id="retake-quiz" class="quiz-btn-retake">
+                    <span>Try Again</span>
+                </button>
+            </div>
+        </section>
+        <!-- END QUIZ SECTION -->
+
+        <section id="outro">
+            <h2>Build Your Own Hit</h2>
+            <p>Use our interactive tool to see how your dream game would rate.</p>
+            <div id="interactive-builder">
+                <div class="builder-controls">
+                    <div class="control-group">
+                        <label>Mechanic</label>
+                        <select id="builder-mechanic">
+                            <option value="all">Any</option>
+                            <option value="Worker Placement">Worker Placement</option>
+                            <option value="Dice Rolling">Dice Rolling</option>
+                            <option value="Hand Management">Hand Management</option>
+                            <option value="Deck, Bag, and Pool Building">Deck Building</option>
+                            <option value="Cooperative Game">Cooperative</option>
+                            <option value="Area Majority / Influence">Area Control</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Complexity (1-5)</label>
+                        <input type="range" id="builder-weight" min="1" max="5" step="0.5" value="2.5">
+                        <span id="builder-weight-val">2.5</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Playtime (min)</label>
+                        <input type="range" id="builder-time" min="15" max="240" step="15" value="60">
+                        <span id="builder-time-val">60</span>
+                    </div>
+                </div>
+
+                <div id="builder-result">
+                    <div class="prediction">
+                        <h3>Predicted Rating</h3>
+                        <div id="prediction-score">--</div>
+                    </div>
+                    <div class="similar-games">
+                        <h3>Similar Hits</h3>
+                        <ul id="similar-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+
+</html>
