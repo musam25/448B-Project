@@ -99,7 +99,7 @@ function handleStepEnterComplexity(response) {
 // Resize Handler
 function handleResize() {
     // 1. Update height of step elements
-    const stepH = Math.floor(window.innerHeight * 0.75);
+    const stepH = Math.floor(window.innerHeight * 0.50);
     step.style("height", stepH + "px");
     stepComplexity.style("height", stepH + "px");
 
@@ -147,24 +147,30 @@ function renderChart(data) {
                 }
             });
         });
+        // collect game names for this year
+        const gameNames = games.map(g => g.name);
 
         // Normalize by total games that year? Or raw count? 
         // Raw count shows growth of industry, Percentage shows trend preference.
-        // Let's do Percentage for now to see "design preference".
+        // Right now, I'm doing raw count instead of percentage -- seems better.
         const totalGames = games.length;
-        const percentages = { year };
+        const result = {
+            year,
+            games: gameNames
+        };
         topMechanics.forEach(m => {
-            percentages[m] = totalGames > 0 ? (counts[m] / totalGames) : 0;
+            result[m] = totalGames > 0 ? (counts[m] / totalGames) : 0; // normalized
+            // result[m] = counts[m]; // raw count
         });
 
-        return percentages;
+        return result;
     }).sort((a, b) => a.year - b.year);
 
     // Setup SVG
     const container = d3.select("#vis-container");
     const width = container.node().getBoundingClientRect().width;
     const height = container.node().getBoundingClientRect().height;
-    const margin = { top: 20, right: 100, bottom: 30, left: 40 };
+    const margin = { top: 20, right: 200, bottom: 30, left: 100 };
 
     // Clear previous
     container.html("");
@@ -181,7 +187,7 @@ function renderChart(data) {
         .range([0, width - margin.left - margin.right]);
 
     const y = d3.scaleLinear()
-        .domain([0, 0.6]) // Max 60% prevalence
+        .domain([0, 1]) // 100%
         .range([height - margin.top - margin.bottom, 0]);
 
     const color = d3.scaleOrdinal()
@@ -211,6 +217,18 @@ function renderChart(data) {
             .attr("class", "line-mech")
             .attr("id", "line-" + mech.replace(/[^a-zA-Z]/g, "")) // Clean ID
             .attr("d", line);
+        
+        // add POINTS (this is the new part)
+        svg.selectAll(".dot-" + mech.replace(/[^a-zA-Z]/g, ""))
+            .data(mechanicsByYear)
+            .enter()
+            .append("circle")
+            .attr("class", "line-point")
+            .attr("cx", d => x(d.year))
+            .attr("cy", d => y(d[mech]))
+            .attr("r", 4)
+            .attr("fill", color(mech))
+            .attr("opacity", 0);
 
         // Label at the end
         const lastPoint = mechanicsByYear[mechanicsByYear.length - 1];
@@ -223,29 +241,70 @@ function renderChart(data) {
     });
 }
 
+const tooltip = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("border", "1px solid black")
+    .style("border-radius", "6px")
+    .style("height", "100px")
+    .style("width", "200px")
+    .style("padding", "6px")
+    .style("pointer-events", "none")
+    .style("opacity", 1)
+    .style("z-index", 100);
+
 function updateChart(stepIndex) {
     // We can highlight specific lines based on the step
     const svg = d3.select("#vis-container svg");
 
     // Reset all
-    svg.selectAll(".line-mech").attr("opacity", 0.2).attr("stroke-width", 1);
+    svg.selectAll(".line-mech").attr("opacity", 0.2).attr("stroke-width", 1)
+
+    svg.selectAll(".line-point").style("opacity", 0)
 
     switch (stepIndex) {
-        case 0: // Early Days
-            // Highlight Dice Rolling
+        case 0: // Dice Rolling
             svg.select("#line-DiceRolling").attr("opacity", 1).attr("stroke-width", 4);
             break;
-        case 1: // Eurogame Revolution
-            // Highlight Worker Placement
-            svg.select("#line-WorkerPlacement").attr("opacity", 1).attr("stroke-width", 4);
+        case 1: // Hand Management
+            svg.select("#line-HandManagement").attr("opacity", 1).attr("stroke-width", 4);
             break;
         case 2: // Complexity Rising
-            // Maybe show all?
-            svg.selectAll(".line-mech").attr("opacity", 1).attr("stroke-width", 2);
-            break;
-        case 3: // Modern Hybrids
-            // Highlight Deck Building
             svg.select("#line-DeckBagandPoolBuilding").attr("opacity", 1).attr("stroke-width", 4);
+            svg.select("#line-CooperativeGame").attr("opacity", 1).attr("stroke-width", 4);
+            svg.select("#line-WorkerPlacement").attr("opacity", 1).attr("stroke-width", 4);
+            break;
+        case 3: // Clickable interactive chart
+            console.log("updateChart(3) called");
+            
+            svg.selectAll(".line-mech")
+                .attr("opacity", 0.5)
+                .attr("stroke-width", 2);
+
+            svg.selectAll(".line-point")
+                .style("opacity", 0.9)
+                .style("pointer-events", "all")
+                .on("mouseenter", function (event, d) {
+                    console.log("mouse entered" + JSON.stringify(d))
+                    d3.select(this)
+                    .attr("r", 7);
+
+                    tooltip
+                    .style("opacity", 1)
+                    .html(`
+                        <strong>${d.year}</strong><br>
+                        ${d.games.length} game(s)
+                    `);
+                })
+                .on("mousemove", function (event) {
+                    tooltip
+                    .style("left", event.pageX + 10 + "px")
+                    .style("top", event.pageY + 10 + "px");
+                })
+                .on("mouseleave", function () {
+                    d3.select(this).attr("r", 4);
+                    tooltip.style("opacity", 0);
+                });
             break;
     }
 }
