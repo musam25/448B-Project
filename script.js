@@ -132,7 +132,7 @@ function renderChart(data) {
 
     // Process data for Mechanics Evolution
     // We want to see the rise of specific mechanics: 'Dice Rolling', 'Hand Management', 'Worker Placement', 'Cooperative Game'
-    const topMechanics = ['Dice Rolling', 'Hand Management', 'Worker Placement', 'Cooperative Game', 'Deck, Bag, and Pool Building', 'Area Majority / Influence'];
+    const topMechanics = ['Dice Rolling', 'Hand Management', 'Cooperative Game', 'Deck, Bag, and Pool Building', 'Area Majority / Influence'];
 
     // Group by year and count mechanics
     const years = d3.group(data, d => d.year);
@@ -203,7 +203,7 @@ function renderChart(data) {
 
     const color = d3.scaleOrdinal()
         .domain(topMechanics)
-        .range(["#ff4d4d", "#4da6ff", "#ffd700", "#00cc66", "#ff99cc", "#ff512aff"]); // Bright colors
+        .range(["#ff4d4d", "#4da6ff", "#ffd700", "#00cc66", "#ff99cc"]); // Bright colors
 
     // Axes
     svg.append("g")
@@ -211,7 +211,7 @@ function renderChart(data) {
         .call(d3.axisBottom(x).tickFormat(d3.format("d")));
 
     svg.append("g")
-        .call(d3.axisLeft(y).tickFormat(d3.format("n")));
+        .call(d3.axisLeft(y));
 
     // Lines
     topMechanics.forEach(mech => {
@@ -258,9 +258,8 @@ const tooltip = d3.select("body")
     .style("background", "rgba(17, 17, 17, 0.9)")
     .style("padding", "1rem")
     .style("size", "0.5rem")
-    .style("pointer-events", "none")
     .style("opacity", 1)
-    .style("z-index", 100);
+    .style("z-index", 2);
 
 function updateChart(stepIndex) {
     // We can highlight specific lines based on the step
@@ -301,7 +300,7 @@ function updateChart(stepIndex) {
                     tooltip
                     .style("opacity", 1)
                     .html(`
-                        ${d.games.length} games
+                        ${d.year} games
                     `);
                 })
                 .on("mousemove", function (event) {
@@ -337,6 +336,25 @@ function downsampleEveryN(data, maxPoints = 3000) {
   return data.filter((_, i) => i % step === 0);
 }
 
+function linearRegression(x, y) {
+  const n = x.length;
+  const xMean = d3.mean(x);
+  const yMean = d3.mean(y);
+
+  let num = 0;
+  let den = 0;
+
+  for (let i = 0; i < n; i++) {
+    num += (x[i] - xMean) * (y[i] - yMean);
+    den += (x[i] - xMean) * (x[i] - xMean);
+  }
+
+  const slope = num / den;
+  const intercept = yMean - slope * xMean;
+
+  return { slope, intercept };
+}
+
 function renderComplexityChart(data) {
     const container = d3.select("#vis-complexity");
     const width = container.node().getBoundingClientRect().width;
@@ -365,28 +383,14 @@ function renderComplexityChart(data) {
         .attr("transform", `translate(0, ${height - margin.top - margin.bottom})`)
         .call(d3.axisBottom(x).ticks(5));
 
-    svg.append("text")
-        .attr("x", (width - margin.left - margin.right) / 2)
-        .attr("y", height - margin.bottom + 10)
-        .style("text-anchor", "middle")
-        .text("Complexity (Weight)");
-
     svg.append("g")
         .call(d3.axisLeft(y));
-
-    svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0 - margin.left)
-        .attr("x", 0 - (height / 2))
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .text("Average Rating");
 
     // Scatter points (Hexbin would be better for performance, but let's try simple circles with low opacity first)
     // Downsample for performance if needed, but 17k is borderline okay for canvas, maybe slow for SVG.
     // Let's use a subset or just render them.
 
-    const plotData = downsampleEveryN(data, 3000);
+    const plotData = downsampleEveryN(data, 5000);
 
     svg.selectAll("circle")
         .data(plotData)
@@ -396,8 +400,33 @@ function renderComplexityChart(data) {
         .attr("cy", d => y(d.rating))
         .attr("r", 2)
         .attr("fill", "#457b9d")
-        .attr("opacity", 0.1) // High transparency to show density
+        .attr("opacity", 0.3) // High transparency to show density
         .attr("class", "dot-complexity");
+    
+        // ---- TRENDLINE ----
+
+        // Linear regression of rating ~ weight
+        const lr = linearRegression(
+            data.map(d => d.weight),
+            data.map(d => d.rating)
+        );
+
+        // Endpoints of the trendline (x = 1 to 5)
+        const xMin = 1;
+        const xMax = 5;
+
+        const yMin = lr.intercept + lr.slope * xMin;
+        const yMax = lr.intercept + lr.slope * xMax;
+
+        svg.append("line")
+        .attr("class", "trendline-complexity")
+        .attr("x1", x(xMin))
+        .attr("y1", y(yMin))
+        .attr("x2", x(xMax))
+        .attr("y2", y(yMax))
+        .attr("stroke", "white")
+        .attr("stroke-width", 3)
+        .attr("opacity", 0); // ✅ start hidden
 }
 
 function updateComplexityChart(stepIndex) {
@@ -407,24 +436,23 @@ function updateComplexityChart(stepIndex) {
     svg.selectAll(".dot-complexity")
         .attr("fill", "#457b9d")
         .attr("r", 2)
-        .attr("opacity", 0.1);
+        .attr("opacity", 0.3);
+    
+    svg.selectAll(".trendline-complexity")
+        .attr("opacity", 0);
 
     switch (stepIndex) {
         case 0: // 90s Simple Games
             // Highlight games from < 2000
             svg.selectAll(".dot-complexity")
-                .filter(d => d.year < 2000)
+                .filter(d => d.year < 1990)
                 .attr("fill", "#e63946")
-                .attr("opacity", 0.5)
+                .attr("opacity", 0.6)
                 .attr("r", 3);
             break;
         case 1: // Heavier is Better
-            // No filter, just show trend line?
-            // For now, let's highlight heavy games
-            svg.selectAll(".dot-complexity")
-                .filter(d => d.weight > 3.0)
-                .attr("fill", "#2a9d8f")
-                .attr("opacity", 0.3);
+            svg.selectAll(".trendline-complexity")
+                .attr("opacity", 0.7);
             break;
         case 2: // Sweet Spot
             svg.selectAll(".dot-complexity")

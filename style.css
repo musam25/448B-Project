@@ -107,7 +107,7 @@ article {
 }
 
 article .step {
-    margin: 0 auto 80vh auto;
+    margin: 0 auto 100vh auto;
     background-color: rgba(17, 17, 17, 0.9);
     /* Dark semi-transparent */
     padding: 2rem;
@@ -117,10 +117,6 @@ article .step {
     opacity: 0.2;
     transition: all 0.2s ease;
     color: var(--text-muted);
-}
-
-article .step:first-child {
-    margin-top: 50vh;
 }
 
 article .step:last-child {
@@ -142,12 +138,9 @@ article .step h2 {
 
 #interactive-zone {
     height: 200vh;
-    /* how long you want the “playground” to be */
     position: relative;
     z-index: 1;
     /* same stacking context as article */
-    /* optional: a subtle background to hint it's a new section */
-    /* background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.03)); */
 }
 
 figure {
