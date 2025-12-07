@@ -90,7 +90,7 @@ article {
     margin: 0 auto;
     z-index: 2;
     pointer-events: none;
-    margin-top: -100vh;
+    padding-top: -100vh;
 }
 
 .line-mech {
@@ -111,7 +111,7 @@ article .step {
 }
 
 article .step:first-child {
-    margin-top: 100vh;
+    margin-top: 50vh;
 }
 
 article .step:last-child {
@@ -364,6 +364,7 @@ figure {
     color: var(--text-muted);
     max-width: 500px;
     margin-bottom: 3rem;
+    flex-grow: 1;
 }
 
 .quiz-btn-start {

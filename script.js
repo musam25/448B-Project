@@ -125,13 +125,14 @@ function handleResize() {
 // Global state for data
 let globalData = [];
 let mechanicsByYear = [];
+let allMechanics = {};
 
 function renderChart(data) {
     globalData = data;
 
     // Process data for Mechanics Evolution
     // We want to see the rise of specific mechanics: 'Dice Rolling', 'Hand Management', 'Worker Placement', 'Cooperative Game'
-    const topMechanics = ['Dice Rolling', 'Hand Management', 'Worker Placement', 'Cooperative Game', 'Deck, Bag, and Pool Building'];
+    const topMechanics = ['Dice Rolling', 'Hand Management', 'Worker Placement', 'Cooperative Game', 'Deck, Bag, and Pool Building', 'Area Majority / Influence'];
 
     // Group by year and count mechanics
     const years = d3.group(data, d => d.year);
@@ -147,22 +148,21 @@ function renderChart(data) {
                 }
             });
         });
+
         // collect game names for this year
         const gameNames = games.map(g => g.name);
 
         // Normalize by total games that year? Or raw count? 
         // Raw count shows growth of industry, Percentage shows trend preference.
         // Right now, I'm doing raw count instead of percentage -- seems better.
-        const totalGames = games.length;
         const result = {
             year,
             games: gameNames
         };
         topMechanics.forEach(m => {
-            result[m] = totalGames > 0 ? (counts[m] / totalGames) : 0; // normalized
-            // result[m] = counts[m]; // raw count
+            // result[m] = totalGames > 0 ? (counts[m] / totalGames) : 0; // normalized
+            result[m] = counts[m]; // raw count
         });
-
         return result;
     }).sort((a, b) => a.year - b.year);
 
@@ -186,13 +186,24 @@ function renderChart(data) {
         .domain(d3.extent(mechanicsByYear, d => d.year))
         .range([0, width - margin.left - margin.right]);
 
+    // 
     const y = d3.scaleLinear()
-        .domain([0, 1]) // 100%
+        .domain([
+            0,
+            d3.max(mechanicsByYear, d =>
+            d3.max(topMechanics, m => d[m])
+            )
+        ])
         .range([height - margin.top - margin.bottom, 0]);
+
+
+    // const y = d3.scaleLinear()
+    //      .domain([0, 1]) // 100%
+    //     .range([height - margin.top - margin.bottom, 0]);
 
     const color = d3.scaleOrdinal()
         .domain(topMechanics)
-        .range(["#ff4d4d", "#4da6ff", "#ffd700", "#00cc66", "#ff99cc"]); // Bright colors
+        .range(["#ff4d4d", "#4da6ff", "#ffd700", "#00cc66", "#ff99cc", "#ff512aff"]); // Bright colors
 
     // Axes
     svg.append("g")
@@ -200,7 +211,7 @@ function renderChart(data) {
         .call(d3.axisBottom(x).tickFormat(d3.format("d")));
 
     svg.append("g")
-        .call(d3.axisLeft(y).tickFormat(d3.format(".0%")));
+        .call(d3.axisLeft(y).tickFormat(d3.format("n")));
 
     // Lines
     topMechanics.forEach(mech => {
@@ -244,11 +255,9 @@ function renderChart(data) {
 const tooltip = d3.select("body")
     .append("div")
     .style("position", "absolute")
-    .style("border", "1px solid black")
-    .style("border-radius", "6px")
-    .style("height", "100px")
-    .style("width", "200px")
-    .style("padding", "6px")
+    .style("background", "rgba(17, 17, 17, 0.9)")
+    .style("padding", "1rem")
+    .style("size", "0.5rem")
     .style("pointer-events", "none")
     .style("opacity", 1)
     .style("z-index", 100);
@@ -278,7 +287,7 @@ function updateChart(stepIndex) {
             console.log("updateChart(3) called");
             
             svg.selectAll(".line-mech")
-                .attr("opacity", 0.5)
+                .attr("opacity", 0.2)
                 .attr("stroke-width", 2);
 
             svg.selectAll(".line-point")
@@ -292,8 +301,7 @@ function updateChart(stepIndex) {
                     tooltip
                     .style("opacity", 1)
                     .html(`
-                        <strong>${d.year}</strong><br>
-                        ${d.games.length} game(s)
+                        ${d.games.length} games
                     `);
                 })
                 .on("mousemove", function (event) {
@@ -310,6 +318,24 @@ function updateChart(stepIndex) {
 }
 
 // --- Complexity Chart ---
+
+function downsample(data, maxPoints = 3000) {
+  if (data.length <= maxPoints) return data;
+
+  // Simple, fast random sample (no replacement)
+  const result = [];
+  for (let i = 0; i < maxPoints; i++) {
+    const idx = Math.floor(Math.random() * data.length);
+    result.push(data[idx]);
+  }
+  return result;
+}
+
+function downsampleEveryN(data, maxPoints = 3000) {
+  if (data.length <= maxPoints) return data;
+  const step = Math.ceil(data.length / maxPoints);
+  return data.filter((_, i) => i % step === 0);
+}
 
 function renderComplexityChart(data) {
     const container = d3.select("#vis-complexity");
@@ -360,8 +386,10 @@ function renderComplexityChart(data) {
     // Downsample for performance if needed, but 17k is borderline okay for canvas, maybe slow for SVG.
     // Let's use a subset or just render them.
 
+    const plotData = downsampleEveryN(data, 3000);
+
     svg.selectAll("circle")
-        .data(data)
+        .data(plotData)
         .enter()
         .append("circle")
         .attr("cx", d => x(d.weight))
