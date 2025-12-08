@@ -267,22 +267,24 @@ function updateChart(stepIndex) {
 
     // Reset all
     svg.selectAll(".line-mech").attr("opacity", 0.2).attr("stroke-width", 1)
-
     svg.selectAll(".line-point").style("opacity", 0)
 
     switch (stepIndex) {
-        case 0: // Dice Rolling
+        case 0:
+            svg.selectAll(".line-mech").attr("opacity", 1).attr("stroke-width", 2)
+            break;
+        case 1: // Dice Rolling
             svg.select("#line-DiceRolling").attr("opacity", 1).attr("stroke-width", 4);
             break;
-        case 1: // Hand Management
+        case 2: // Hand Management
             svg.select("#line-HandManagement").attr("opacity", 1).attr("stroke-width", 4);
             break;
-        case 2: // Complexity Rising
+        case 3: // Complexity Rising
             svg.select("#line-DeckBagandPoolBuilding").attr("opacity", 1).attr("stroke-width", 4);
             svg.select("#line-CooperativeGame").attr("opacity", 1).attr("stroke-width", 4);
-            svg.select("#line-WorkerPlacement").attr("opacity", 1).attr("stroke-width", 4);
+            svg.select("#line-AreaMajorityInfluence").attr("opacity", 1).attr("stroke-width", 4);
             break;
-        case 3: // Clickable interactive chart
+        case 4: // Clickable interactive chart
             console.log("updateChart(3) called");
             
             svg.selectAll(".line-mech")
@@ -318,19 +320,7 @@ function updateChart(stepIndex) {
 
 // --- Complexity Chart ---
 
-function downsample(data, maxPoints = 3000) {
-  if (data.length <= maxPoints) return data;
-
-  // Simple, fast random sample (no replacement)
-  const result = [];
-  for (let i = 0; i < maxPoints; i++) {
-    const idx = Math.floor(Math.random() * data.length);
-    result.push(data[idx]);
-  }
-  return result;
-}
-
-function downsampleEveryN(data, maxPoints = 3000) {
+function downsampleEveryN(data, maxPoints) {
   if (data.length <= maxPoints) return data;
   const step = Math.ceil(data.length / maxPoints);
   return data.filter((_, i) => i % step === 0);
@@ -386,11 +376,7 @@ function renderComplexityChart(data) {
     svg.append("g")
         .call(d3.axisLeft(y));
 
-    // Scatter points (Hexbin would be better for performance, but let's try simple circles with low opacity first)
-    // Downsample for performance if needed, but 17k is borderline okay for canvas, maybe slow for SVG.
-    // Let's use a subset or just render them.
-
-    const plotData = downsampleEveryN(data, 5000);
+    const plotData = downsampleEveryN(data, 15000);
 
     svg.selectAll("circle")
         .data(plotData)
@@ -444,21 +430,22 @@ function updateComplexityChart(stepIndex) {
     switch (stepIndex) {
         case 0: // 90s Simple Games
             // Highlight games from < 2000
-            svg.selectAll(".dot-complexity")
-                .filter(d => d.year < 1990)
-                .attr("fill", "#e63946")
-                .attr("opacity", 0.6)
-                .attr("r", 3);
             break;
         case 1: // Heavier is Better
             svg.selectAll(".trendline-complexity")
                 .attr("opacity", 0.7);
             break;
         case 2: // Sweet Spot
+            // svg.selectAll(".dot-complexity")
+            //     .filter(d => d.weight > 3.5 && d.weight < 4.5)
+            //     .attr("fill", "#e9c46a")
+            //     .attr("opacity", 0.5)
+            //     .attr("r", 3);
+
             svg.selectAll(".dot-complexity")
-                .filter(d => d.weight > 3.5 && d.weight < 4.5)
-                .attr("fill", "#e9c46a")
-                .attr("opacity", 0.5)
+                .filter(d => d.year > 2015)
+                .attr("fill", "#e63946")
+                .attr("opacity", 0.6)
                 .attr("r", 3);
             break;
     }

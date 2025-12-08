@@ -206,12 +206,6 @@ figure {
     padding: 1rem;
 }
 
-.control-group {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-}
 
 .control-group label {
     color: var(--text-muted);
