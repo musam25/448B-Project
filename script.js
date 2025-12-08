@@ -191,7 +191,7 @@ function renderChart(data) {
         .domain([
             0,
             d3.max(mechanicsByYear, d =>
-            d3.max(topMechanics, m => d[m])
+                d3.max(topMechanics, m => d[m])
             )
         ])
         .range([height - margin.top - margin.bottom, 0]);
@@ -228,7 +228,7 @@ function renderChart(data) {
             .attr("class", "line-mech")
             .attr("id", "line-" + mech.replace(/[^a-zA-Z]/g, "")) // Clean ID
             .attr("d", line);
-        
+
         // add POINTS (this is the new part)
         svg.selectAll(".dot-" + mech.replace(/[^a-zA-Z]/g, ""))
             .data(mechanicsByYear)
@@ -287,7 +287,7 @@ function updateChart(stepIndex) {
             break;
         case 4: // Clickable interactive chart
             console.log("updateChart(3) called");
-            
+
             svg.selectAll(".line-mech")
                 .attr("opacity", 0.2)
                 .attr("stroke-width", 2);
@@ -298,20 +298,20 @@ function updateChart(stepIndex) {
                 .on("mouseenter", function (event, d) {
                     console.log("mouse entered" + JSON.stringify(d))
                     d3.select(this)
-                    .attr("r", 7);
+                        .attr("r", 7);
 
                     const mechanic = this.id
 
                     tooltip
-                    .style("opacity", 1)
-                    .html(`
+                        .style("opacity", 1)
+                        .html(`
                         ${d[mechanic]} games
                     `);
                 })
                 .on("mousemove", function (event) {
                     tooltip
-                    .style("left", event.pageX + 10 + "px")
-                    .style("top", event.pageY + 10 + "px");
+                        .style("left", event.pageX + 10 + "px")
+                        .style("top", event.pageY + 10 + "px");
                 })
                 .on("mouseleave", function () {
                     d3.select(this).attr("r", 4);
@@ -324,28 +324,28 @@ function updateChart(stepIndex) {
 // --- Complexity Chart ---
 
 function downsampleEveryN(data, maxPoints) {
-  if (data.length <= maxPoints) return data;
-  const step = Math.ceil(data.length / maxPoints);
-  return data.filter((_, i) => i % step === 0);
+    if (data.length <= maxPoints) return data;
+    const step = Math.ceil(data.length / maxPoints);
+    return data.filter((_, i) => i % step === 0);
 }
 
 function linearRegression(x, y) {
-  const n = x.length;
-  const xMean = d3.mean(x);
-  const yMean = d3.mean(y);
+    const n = x.length;
+    const xMean = d3.mean(x);
+    const yMean = d3.mean(y);
 
-  let num = 0;
-  let den = 0;
+    let num = 0;
+    let den = 0;
 
-  for (let i = 0; i < n; i++) {
-    num += (x[i] - xMean) * (y[i] - yMean);
-    den += (x[i] - xMean) * (x[i] - xMean);
-  }
+    for (let i = 0; i < n; i++) {
+        num += (x[i] - xMean) * (y[i] - yMean);
+        den += (x[i] - xMean) * (x[i] - xMean);
+    }
 
-  const slope = num / den;
-  const intercept = yMean - slope * xMean;
+    const slope = num / den;
+    const intercept = yMean - slope * xMean;
 
-  return { slope, intercept };
+    return { slope, intercept };
 }
 
 function renderComplexityChart(data) {
@@ -391,23 +391,23 @@ function renderComplexityChart(data) {
         .attr("fill", "#457b9d")
         .attr("opacity", 0.3) // High transparency to show density
         .attr("class", "dot-complexity");
-    
-        // ---- TRENDLINE ----
 
-        // Linear regression of rating ~ weight
-        const lr = linearRegression(
-            data.map(d => d.weight),
-            data.map(d => d.rating)
-        );
+    // ---- TRENDLINE ----
 
-        // Endpoints of the trendline (x = 1 to 5)
-        const xMin = 1;
-        const xMax = 5;
+    // Linear regression of rating ~ weight
+    const lr = linearRegression(
+        data.map(d => d.weight),
+        data.map(d => d.rating)
+    );
 
-        const yMin = lr.intercept + lr.slope * xMin;
-        const yMax = lr.intercept + lr.slope * xMax;
+    // Endpoints of the trendline (x = 1 to 5)
+    const xMin = 1;
+    const xMax = 5;
 
-        svg.append("line")
+    const yMin = lr.intercept + lr.slope * xMin;
+    const yMax = lr.intercept + lr.slope * xMax;
+
+    svg.append("line")
         .attr("class", "trendline-complexity")
         .attr("x1", x(xMin))
         .attr("y1", y(yMin))
@@ -426,7 +426,7 @@ function updateComplexityChart(stepIndex) {
         .attr("fill", "#457b9d")
         .attr("r", 2)
         .attr("opacity", 0.3);
-    
+
     svg.selectAll(".trendline-complexity")
         .attr("opacity", 0);
 
@@ -557,6 +557,15 @@ function startQuiz() {
     d3.select("#quiz-questions").classed("active", true);
     currentQuestion = 0;
     updateProgress();
+
+    // Auto-scroll to the questions container
+    // Use a small timeout to ensure the display change has rendered
+    setTimeout(() => {
+        const questionsContainer = document.getElementById("questions-container");
+        if (questionsContainer) {
+            questionsContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }, 100);
 }
 
 function resetQuiz() {
