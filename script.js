@@ -439,17 +439,41 @@ function updateComplexityChart(stepIndex) {
                 .attr("opacity", 0.7);
             break;
         case 2: // Sweet Spot
-            // svg.selectAll(".dot-complexity")
-            //     .filter(d => d.weight > 3.5 && d.weight < 4.5)
-            //     .attr("fill", "#e9c46a")
-            //     .attr("opacity", 0.5)
-            //     .attr("r", 3);
-
             svg.selectAll(".dot-complexity")
                 .filter(d => d.year > 2015)
                 .attr("fill", "#e63946")
                 .attr("opacity", 0.6)
                 .attr("r", 3);
+            break;
+        case 3: 
+            svg.selectAll(".dot-complexity")
+                .on("mouseenter", function (event, d) {
+                    d3.select(this)
+                    .attr("r", 7)
+                    .attr("fill", "#e63946")
+                    .attr("opacity", 1);
+
+                    tooltip
+                    .style("opacity", 1)
+                    .html(`
+                        ${d.name}<br>
+                        ${d.year}<br>
+                        <strong>Weight:</strong> ${d.weight}<br>
+                        <strong>Rating:</strong> ${d.rating}<br>
+                    `);
+                })
+                .on("mousemove", function (event) {
+                    tooltip
+                    .style("left", event.pageX + 10 + "px")
+                    .style("top", event.pageY + 10 + "px");
+                })
+                .on("mouseleave", function () {
+                    d3.select(this)
+                    .attr("fill", "#457b9d")
+                    .attr("r", 2)
+                    .attr("opacity", 0.3);
+                    tooltip.style("opacity", 0);
+                });
             break;
     }
 }
