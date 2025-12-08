@@ -234,6 +234,7 @@ function renderChart(data) {
             .data(mechanicsByYear)
             .enter()
             .append("circle")
+            .attr("id", mech)
             .attr("class", "line-point")
             .attr("cx", d => x(d.year))
             .attr("cy", d => y(d[mech]))
@@ -299,10 +300,12 @@ function updateChart(stepIndex) {
                     d3.select(this)
                     .attr("r", 7);
 
+                    const mechanic = this.id
+
                     tooltip
                     .style("opacity", 1)
                     .html(`
-                        ${d.year} games
+                        ${d[mechanic]} games
                     `);
                 })
                 .on("mousemove", function (event) {
