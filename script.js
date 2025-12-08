@@ -440,7 +440,7 @@ function updateComplexityChart(stepIndex) {
             break;
         case 2: // Sweet Spot
             svg.selectAll(".dot-complexity")
-                .filter(d => d.year > 2015)
+                .filter(d => d.year > 2017)
                 .attr("fill", "#e63946")
                 .attr("opacity", 0.6)
                 .attr("r", 3);
