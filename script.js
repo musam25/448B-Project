@@ -99,7 +99,7 @@ function handleStepEnterComplexity(response) {
 // Resize Handler
 function handleResize() {
     // 1. Update height of step elements
-    const stepH = Math.floor(window.innerHeight * 0.50);
+    const stepH = Math.floor(window.innerHeight * 0.60);
     step.style("height", stepH + "px");
     stepComplexity.style("height", stepH + "px");
 

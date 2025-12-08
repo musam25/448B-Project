@@ -97,7 +97,6 @@ article {
     /* Narrower column for better reading */
     margin: 0 auto;
     z-index: 2;
-    pointer-events: none;
     padding-top: -100vh;
 }
 
